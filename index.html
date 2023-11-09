@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Arcade Game</title>
+<style>
+  canvas {
+    display: block;
+    background-color: #000;
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas" width="480" height="320"></canvas>
+<script>
+  // Get canvas and context
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Game variables
+  let score = 0;
+  let gameRunning = true;
+
+  // Player object
+  const player = {
+    x: canvas.width / 2,
+    y: canvas.height - 50,
+    width: 50,
+    height: 10,
+    color: '#0f0',
+    move: function(direction) {
+      if(direction === 'left' && this.x > 0) {
+        this.x -= 5;
+      } else if(direction === 'right' && this.x + this.width < canvas.width) {
+        this.x += 5;
+      }
+    },
+    draw: function() {
+      ctx.fillStyle = this.color;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+  };
+
+  // Falling objects
+  const objects = [];
+  function createObject() {
+    const size = Math.random() * (30 - 10) + 10;
+    objects.push({
+      x: Math.random() * (canvas.width - size),
+      y: 0,
+      size: size,
+      color: `rgb(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255})`
+    });
+  }
+
+  // Handle keyboard controls
+  document.addEventListener('keydown', function(e) {
+    if(e.key === 'ArrowLeft') {
+      player.move('left');
+    } else if(e.key === 'ArrowRight') {
+      player.move('right');
+    }
+  });
+
+  // Main game loop
+  function gameLoop() {
+    if (!gameRunning) return;
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Move and draw objects
+    for (const object of objects) {
+      object.y += 2;
+      ctx.fillStyle = object.color;
+      ctx.fillRect(object.x, object.y, object.size, object.size);
+      
+      // Check collision
+      if (object.y + object.size > player.y && object.x < player.x + player.width && object.x + object.size > player.x) {
+        score++;
+        objects.splice(objects.indexOf(object), 1);
+      }
+    }
+
+    // Draw the player
+    player.draw();
+
+    // Display the score
+    ctx.fillStyle = '#fff';
+    ctx.fillText(`Score: ${score}`, 10, 20);
+
+    // Create new objects over time
+    if (Math.random() < 0.05) {
+      createObject();
+    }
+
+    // Repeat
+    requestAnimationFrame(gameLoop);
+  }
+
+  // Start the game
+  gameLoop();
+</script>
+</body>
+</html>
